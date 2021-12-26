@@ -1,0 +1,3 @@
+[submodule "recreate/model_repos/efficient_densenet_pytorch"]
+	path = recreate/model_repos/efficient_densenet_pytorch
+	url = https://github.com/gpleiss/efficient_densenet_pytorch.git
