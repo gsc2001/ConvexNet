@@ -1,4 +1,4 @@
-from .densenet import DenseNet
+from .ioc_densenet import DenseNet
 
 
 __all__ = [
