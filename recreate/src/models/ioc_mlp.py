@@ -159,4 +159,5 @@ def fit(model: IOC_MLP, dataset: DatasetWrapper, lr=0.0001, batch_size=64,
 
         if counter > 7:
             print("Patience came ending now")
+            break
     writer.close()

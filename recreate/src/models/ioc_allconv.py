@@ -127,6 +127,7 @@ def fit(model: IOC_AllConv, dataset: DatasetWrapper, lr=0.001, batch_size=64,
         n_epochs=10, path=None):
     if path is None:
         path = f'trained_models/ioc_allconv.{dataset.name}'
+    print('hi')
     writer = SummaryWriter(f'runs/ioc_allconv.{dataset.name}')
     if torch.cuda.is_available():
         model.cuda()
@@ -151,7 +152,6 @@ def fit(model: IOC_AllConv, dataset: DatasetWrapper, lr=0.001, batch_size=64,
     best_error = np.inf
     counter = 0
     for epoch in range(n_epochs):
-        scheduler.step()
         train_loss, train_error = train_epoch(model=model, optimizer=optimizer,
                                               loss_func=loss_func,
                                               dataset=dataset,
@@ -165,6 +165,8 @@ def fit(model: IOC_AllConv, dataset: DatasetWrapper, lr=0.001, batch_size=64,
                                         'valid': (1 - valid_error) * 100},
                            epoch)
         print(valid_error)
+        #
+        scheduler.step()
 
         if valid_error < best_error:
             print('Saving!')

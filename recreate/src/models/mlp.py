@@ -102,8 +102,8 @@ def test_epoch(model: nn.Module, dataset: DatasetWrapper,
 def fit(model: MLP, dataset: DatasetWrapper, lr=0.0001, batch_size=64,
         n_epochs=10, path=None):
     if path is None:
-        path = f'trained_models/mlp.{dataset.name}'
-    writer = SummaryWriter(f'runs/mlp.{dataset.name}')
+        path = f'trained_models/mlp.{dataset.name}.random100'
+    writer = SummaryWriter(f'runs/mlp.{dataset.name}.random100')
     if torch.cuda.is_available():
         model.cuda()
     model.train()
@@ -152,5 +152,6 @@ def fit(model: MLP, dataset: DatasetWrapper, lr=0.0001, batch_size=64,
 
         if counter > 7:
             print("Patience came ending now")
+            break
 
 # current_loss = 0.0
