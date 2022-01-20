@@ -36,7 +36,7 @@ def main():
                               ]))
 
     model = mixer.MlpMixer(3, HIDDEN_SIZE, 10, PATCH_SIZE, RESIZE_TO,
-                           1, MLP_SEQ_DIM, MLP_CHANNEL_DIM)
+                           NUM_MIXER_LAYERS, MLP_SEQ_DIM, MLP_CHANNEL_DIM)
 
     mixer.fit(model, dataset, batch_size=BATCH_SIZE, n_epochs=EPOCHS)
 
