@@ -1,5 +1,8 @@
 import numpy as np
 import torch
+import torch.utils.data
+
+from datasets.preprocess import DatasetWrapper
 
 
 class AverageMeter(object):
@@ -78,3 +81,21 @@ class EarlyStopping:
                 f'Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).  Saving model ...')
         torch.save(model.state_dict(), self.path)
         self.val_loss_min = val_loss
+
+
+def get_loaders(dataset: DatasetWrapper, batch_size):
+    loaders = {}
+
+    loaders['train'] = torch.utils.data.DataLoader(dataset.train_set,
+                                                   batch_size=batch_size,
+                                                   shuffle=True,
+                                                   pin_memory=torch.cuda.is_available())
+
+    loaders['test'] = torch.utils.data.DataLoader(dataset.test_set,
+                                                  batch_size=batch_size,
+                                                  pin_memory=torch.cuda.is_available())
+
+    if dataset.has_valid:
+        loaders['valid'] = torch.utils.data.DataLoader(dataset.valid_set,
+                                                       batch_size=batch_size,
+                                                       pin_memory=torch.cuda.is_available())
