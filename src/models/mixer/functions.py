@@ -17,18 +17,26 @@ def train_epoch(model, optimizer, loss_func, dataset, train_loader, epoch,
     with tqdm(total=len(dataset.train_set),
               desc=f"Epoch {epoch + 1} / {n_epochs}") as pbar:
         for data, targets in train_loader:
+            print("enter")
             if torch.cuda.is_available():
                 data = data.cuda()
                 targets = targets.cuda()
 
+            print("enter1")
             optimizer.zero_grad()
+            print("enter2")
             outputs = model(data)
+            print("enter3")
 
+            print("enter4")
             loss = loss_func(outputs, targets)
+            print("enter5")
 
             loss.backward()
+            print("enter6")
 
             optimizer.step()
+            print("enter7")
 
             batch_size = targets.size(0)
             _, pred = outputs.data.cpu().topk(1, dim=1)
@@ -37,9 +45,12 @@ def train_epoch(model, optimizer, loss_func, dataset, train_loader, epoch,
             errors.update(error, batch_size)
             losses.update(loss.item())
 
+            print("enter8")
             if train_epoch_hook:
                 train_epoch_hook(outputs, targets, loss)
 
+            print("enter9")
+            print(data.shape)
             pbar.update(data.shape[0])
             pbar.set_postfix(**{
                 '[Train/Loss]': losses.avg,
@@ -91,7 +102,11 @@ def fit(model: MlpMixer, dataset: DatasetWrapper, lr=1e-3, batch_size=64,
 
     writer = SummaryWriter(f'runs/{save_name}')
 
+    if torch.cuda.is_available():
+        model.cuda()
+
     model.train()
+
     loaders = get_loaders(dataset, batch_size)
 
     loss_func = nn.CrossEntropyLoss()

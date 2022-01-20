@@ -99,3 +99,5 @@ def get_loaders(dataset: DatasetWrapper, batch_size):
         loaders['valid'] = torch.utils.data.DataLoader(dataset.valid_set,
                                                        batch_size=batch_size,
                                                        pin_memory=torch.cuda.is_available())
+
+    return loaders
