@@ -40,7 +40,6 @@ def train_epoch(model, optimizer, loss_func, dataset, train_loader, epoch,
             if train_epoch_hook:
                 train_epoch_hook(outputs, targets, loss)
 
-            print(data.shape)
             pbar.update(data.shape[0])
             pbar.set_postfix(**{
                 '[Train/Loss]': losses.avg,
