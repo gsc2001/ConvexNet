@@ -8,7 +8,7 @@ class MlpBlock(nn.Module):
         super().__init__()
         self.net = nn.Sequential(
             nn.Linear(dim, hidden_dim),
-            nn.GELU(),
+            nn.ELU(),
             nn.Linear(hidden_dim, dim)
         )
 
@@ -55,8 +55,10 @@ class MlpMixer(nn.Module):
             Rearrange('b c h w -> b (h w) c')
         )
         self.mixer_blocks = nn.ModuleList(
-            [MixerBlock(c, num_patches, token_mlp_dim, channel_mlp_dim) for _ in
-             range(depth)])
+            [MixerBlock(c, num_patches, token_mlp_dim * 2, channel_mlp_dim)])
+        for _ in range(depth - 1):
+            self.mixer_blocks.append(
+                MixerBlock(c, num_patches, token_mlp_dim, channel_mlp_dim))
 
         self.layer_norm = nn.LayerNorm(c)
 
