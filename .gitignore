@@ -133,3 +133,4 @@ data/
 runs/
 trained_models/
 model_repos/
+*.out

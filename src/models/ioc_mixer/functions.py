@@ -120,7 +120,7 @@ def fit(model: MlpMixer, dataset: DatasetWrapper, lr=1e-3, batch_size=64,
 
     for epoch in range(n_epochs):
         train_loss, train_error = train_epoch(model, optimizer, loss_func,
-                                              dataset, loaders['train'], epoch,
+                                              dataset, loadeclears['train'], epoch,
                                               n_epochs=n_epochs,
                                               train_epoch_hook=train_epoch_hook)
 
