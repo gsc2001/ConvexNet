@@ -7,7 +7,7 @@
 from datasets.preprocess import get_dataset, DatasetNames
 
 from torchvision.transforms import transforms
-from models import mixer
+from models import ioc_mixer
 
 # hyper parameters
 
@@ -35,10 +35,10 @@ def main():
                                   transforms.Normalize(mean, stdv)
                               ]))
 
-    model = mixer.MlpMixer(3, HIDDEN_SIZE, 10, PATCH_SIZE, RESIZE_TO,
-                           NUM_MIXER_LAYERS, MLP_SEQ_DIM, MLP_CHANNEL_DIM)
+    model = ioc_mixer.MlpMixer(3, HIDDEN_SIZE, 10, PATCH_SIZE, RESIZE_TO,
+                               NUM_MIXER_LAYERS, MLP_SEQ_DIM, MLP_CHANNEL_DIM)
 
-    mixer.fit(model, dataset, batch_size=BATCH_SIZE, n_epochs=EPOCHS)
+    ioc_mixer.fit(model, dataset, batch_size=BATCH_SIZE, n_epochs=EPOCHS)
 
 
 if __name__ == '__main__':
