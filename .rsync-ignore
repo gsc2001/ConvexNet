@@ -1,0 +1,5 @@
+data/
+.git
+trained_models/
+runs/
+
