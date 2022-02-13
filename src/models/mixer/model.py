@@ -1,6 +1,7 @@
 from torch import nn
 import torch.nn.functional as F
 from einops.layers.torch import Rearrange
+from timm.models.layers import DropPath
 
 
 class MlpBlock(nn.Module):
@@ -17,7 +18,7 @@ class MlpBlock(nn.Module):
 
 
 class MixerBlock(nn.Module):
-    def __init__(self, c, num_patch, tokens_mlp_dim, channel_mlp_dim):
+    def __init__(self, c, num_patch, tokens_mlp_dim, channel_mlp_dim, drop_path_rate):
         super().__init__()
 
         self.token_mix = nn.Sequential(
@@ -28,6 +29,7 @@ class MixerBlock(nn.Module):
             MlpBlock(num_patch, tokens_mlp_dim),
             Rearrange('b c n -> b n c'),
         )
+        self.drop_path = drop_path_rate
 
         self.channel_mix = nn.Sequential(
             nn.LayerNorm(c),
@@ -43,7 +45,7 @@ class MixerBlock(nn.Module):
 
 class MlpMixer(nn.Module):
     def __init__(self, in_channels, c, num_classes, patch_size, image_size,
-                 depth, token_mlp_dim, channel_mlp_dim):
+                 depth, token_mlp_dim, channel_mlp_dim, drop_path_max_rate=0.1):
         super().__init__()
 
         assert image_size % patch_size == 0, "Patch size should divide image size"
@@ -55,8 +57,8 @@ class MlpMixer(nn.Module):
             Rearrange('b c h w -> b (h w) c')
         )
         self.mixer_blocks = nn.ModuleList(
-            [MixerBlock(c, num_patches, token_mlp_dim, channel_mlp_dim) for _ in
-             range(depth)])
+            [MixerBlock(c, num_patches, token_mlp_dim, channel_mlp_dim, 0 + i * drop_path_max_rate / (depth - 1))
+             for i in range(depth)])
 
         self.layer_norm = nn.LayerNorm(c)
 
