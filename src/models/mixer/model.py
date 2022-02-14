@@ -3,6 +3,8 @@ import torch.nn.functional as F
 from einops.layers.torch import Rearrange
 from timm.models.layers import DropPath
 
+from config import MlpMixerConfig
+
 
 class MlpBlock(nn.Module):
     def __init__(self, dim, hidden_dim):
@@ -29,7 +31,7 @@ class MixerBlock(nn.Module):
             MlpBlock(num_patch, tokens_mlp_dim),
             Rearrange('b c n -> b n c'),
         )
-        self.drop_path = drop_path_rate
+        self.drop_path = DropPath(drop_path_rate)
 
         self.channel_mix = nn.Sequential(
             nn.LayerNorm(c),
@@ -37,33 +39,33 @@ class MixerBlock(nn.Module):
         )
 
     def forward(self, x):
-        x = x + self.token_mix(x)
-        x = x + self.channel_mix(x)
+        x = x + self.drop_path(self.token_mix(x))
+        x = x + self.drop_path(self.channel_mix(x))
 
         return x
 
 
 class MlpMixer(nn.Module):
-    def __init__(self, in_channels, c, num_classes, patch_size, image_size,
-                 depth, token_mlp_dim, channel_mlp_dim, drop_path_max_rate=0.1):
+    def __init__(self, config: MlpMixerConfig):
         super().__init__()
 
-        assert image_size % patch_size == 0, "Patch size should divide image size"
-        num_patches = (image_size // patch_size) ** 2
+        assert config.img_size % config.patch_size == 0, "Patch size should divide image size"
+        num_patches = (config.img_size // config.patch_size) ** 2
 
         self.to_patch_embedding = nn.Sequential(
-            nn.Conv2d(in_channels=in_channels, out_channels=c,
-                      kernel_size=patch_size, stride=patch_size),
+            nn.Conv2d(in_channels=config.in_channels, out_channels=config.hidden_size,
+                      kernel_size=(config.patch_size,), stride=(config.patch_size,)),
             Rearrange('b c h w -> b (h w) c')
         )
         self.mixer_blocks = nn.ModuleList(
-            [MixerBlock(c, num_patches, token_mlp_dim, channel_mlp_dim, 0 + i * drop_path_max_rate / (depth - 1))
-             for i in range(depth)])
+            [MixerBlock(config.hidden_size, num_patches, config.mlp_token_dim, config.mlp_channel_dim,
+                        0 + i * config.drop_path_s / (config.num_mixer_layers - 1))
+             for i in range(config.num_mixer_layers)])
 
-        self.layer_norm = nn.LayerNorm(c)
+        self.layer_norm = nn.LayerNorm(config.hidden_size)
 
         self.final_fc = nn.Sequential(
-            nn.Linear(c, num_classes)
+            nn.Linear(config.hidden_size, config.num_classes)
         )
 
     def forward(self, x):
