@@ -6,6 +6,7 @@ from timm.data import create_dataset
 from timm.data.loader import create_loader
 
 from torchvision.transforms import transforms
+from torch.utils.data import DataLoader
 from models import mixer
 from config import Mixer_B_16_config as cfg
 import pytorch_lightning as pl
@@ -18,8 +19,8 @@ import sys
 
 def main():
     cfg.num_classes = 1000
-    # imnet_transforms = create_transform(cfg.img_size, is_training=True,
-    #                                     auto_augment=f'rand-m{cfg.rand_aug_magnitude}-n{cfg.rand_aug_num_ops}')
+    imnet_transforms = create_transform(cfg.img_size, is_training=True,
+                                        auto_augment=f'rand-m{cfg.rand_aug_magnitude}-n{cfg.rand_aug_num_ops}')
     checkpoint_callback = ModelCheckpoint(
         monitor='val_acc',
         dirpath='imgnet_models/mlpMixer/',
@@ -29,14 +30,12 @@ def main():
     )
 
     train_dataset = create_dataset('tfds/imagenet2012', root=sys.argv[1], batch_size=cfg.batch_size,
-                                   is_training=True, split='train', download=True)
+                                   is_training=True, split='train', download=True, transform=imnet_transforms)
 
     valid_dataset = create_dataset('tfds/imagenet2012', root=sys.argv[1], batch_size=cfg.batch_size, split='validation',
-                                   download=True)
-    train_loader = create_loader(train_dataset, cfg.img_size, cfg.batch_size,
-                                 is_training=True,
-                                 auto_augment=f'rand-m{cfg.rand_aug_magnitude}-n{cfg.rand_aug_num_ops}')
-    valid_loader = create_loader(valid_dataset, cfg.img_size, cfg.batch_size)
+                                   download=True, transform=create_transform(224))
+    train_loader = DataLoader(train_dataset, cfg.batch_size, num_workers=10, shuffle=True)
+    valid_loader = DataLoader(valid_dataset, cfg.batch_size, num_workers=10)
 
     model = mixer.MlpMixer(cfg)
     module = mixer.MixerModule(model, cfg.lr, cfg.weight_decay, cfg.lr_warmup_epochs, cfg.num_epochs,

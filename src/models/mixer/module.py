@@ -44,7 +44,7 @@ class MixerModule(pl.LightningModule):
         optimizer = optim.Adam(self.parameters(), self.hparams.lr, weight_decay=self.hparams.wd)
 
         def lr_scheduler(epoch: int):
-            if epoch <= self.hparams.lr_warmpup_epochs:
+            if epoch <= self.hparams.lr_warmup_epochs:
                 lr_scale = epoch / (self.hparams.lr_warmup_epochs - 1)
             else:
                 lr_scale = (epoch - self.hparams.lr_warmup_epochs) / (
