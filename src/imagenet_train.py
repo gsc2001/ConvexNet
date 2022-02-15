@@ -31,11 +31,11 @@ def main():
     train_dataset = create_dataset('tfds/imagenet2012', root=sys.argv[1], batch_size=cfg.batch_size,
                                    is_training=True, split='train', download=True)
 
+    valid_dataset = create_dataset('tfds/imagenet2012', root=sys.argv[1], batch_size=cfg.batch_size, split='validation',
+                                   download=True)
     train_loader = create_loader(train_dataset, cfg.img_size, cfg.batch_size,
                                  is_training=True,
                                  auto_augment=f'rand-m{cfg.rand_aug_magnitude}-n{cfg.rand_aug_num_ops}')
-    valid_dataset = create_dataset('tfds/imagenet2012', root=sys.argv[1], batch_size=cfg.batch_size, split='validation',
-                                   download=True)
     valid_loader = create_loader(valid_dataset, cfg.img_size, cfg.batch_size)
 
     model = mixer.MlpMixer(cfg)
