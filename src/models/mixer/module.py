@@ -4,6 +4,7 @@ from torch import optim
 import torch.nn.functional as F
 from timm.data import Mixup
 from .model import MlpMixer
+from ignite.handlers import create_lr_scheduler_with_warmup
 from utils import mixup_data, mixup_criterion
 
 
@@ -57,7 +58,8 @@ class MixerModule(pl.LightningModule):
         linear_decay = optim.lr_scheduler.LinearLR(optimizer, start_factor=1, end_factor=1e-4,
                                                    total_iters=self.hparams.n_epochs - self.hparams.lr_warmup_epochs)
 
-        scheduler = optim.lr_scheduler.SequentialLR(optimizer, [linear_warmup, linear_decay],
-                                                    milestones=[self.hparams.lr_warmup_epochs])
+        # scheduler = optim.lr_scheduler.SequentialLR(optimizer, [linear_warmup, linear_decay],
+        #                                             milestones=[self.hparams.lr_warmup_epochs])
+        scheduler = create_lr_scheduler_with_warmup(linear_decay, 1e-6, self.hparams.lr_warmup_epochs, self.hparams.lr)
 
         return [optimizer], [scheduler]
