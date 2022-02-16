@@ -57,7 +57,7 @@ class MixerModule(pl.LightningModule):
         linear_decay = optim.lr_scheduler.LinearLR(optimizer, start_factor=1, end_factor=1e-4,
                                                    total_iters=self.hparams.n_epochs - self.hparams.lr_warmup_epochs)
 
-        scheduler = optim.lr_scheduler.SequentialLR([linear_warmup, linear_decay],
+        scheduler = optim.lr_scheduler.SequentialLR(optimizer, [linear_warmup, linear_decay],
                                                     milestones=[self.hparams.lr_warmup_epochs])
 
         return [optimizer], [scheduler]
