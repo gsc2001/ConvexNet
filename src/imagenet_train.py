@@ -6,6 +6,7 @@ from timm.data import create_dataset
 from timm.data.loader import create_loader
 
 from torchvision.transforms import transforms
+from torchvision.datasets import ImageNet
 from torch.utils.data import DataLoader
 from models import mixer
 from config import Mixer_B_16_config as cfg
@@ -19,6 +20,7 @@ import sys
 
 def main():
     cfg.num_classes = 1000
+    print(cfg.img_size, cfg.patch_size)
     imnet_transforms = create_transform(cfg.img_size, is_training=True,
                                         auto_augment=f'rand-m{cfg.rand_aug_magnitude}-n{cfg.rand_aug_num_ops}')
     checkpoint_callback = ModelCheckpoint(
@@ -28,12 +30,13 @@ def main():
         save_top_k=3,
         mode="max"
     )
+    train_dataset = ImageNet(sys.argv[1], split='train', transform=imnet_transforms, shuffle=True)
+    valid_dataset = ImageNet(sys.argv[1], split='validation', transform=create_transform(cfg.img_size))
+    # train_dataset = create_dataset('tfds/imagenet2012', root=sys.argv[1], batch_size=cfg.batch_size,
+    #                                is_training=True, split='train', transform=imnet_transforms)
 
-    train_dataset = create_dataset('tfds/imagenet2012', root=sys.argv[1], batch_size=cfg.batch_size,
-                                   is_training=True, split='train', download=True, transform=imnet_transforms)
-
-    valid_dataset = create_dataset('tfds/imagenet2012', root=sys.argv[1], batch_size=cfg.batch_size, split='validation',
-                                   download=True, transform=create_transform(224))
+    # valid_dataset = create_dataset('tfds/imagenet2012', root=sys.argv[1], batch_size=cfg.batch_size, split='validation',
+    #                                download=True, transform=create_transform(224))
     train_loader = DataLoader(train_dataset, cfg.batch_size, num_workers=10, shuffle=True)
     valid_loader = DataLoader(valid_dataset, cfg.batch_size, num_workers=10)
 

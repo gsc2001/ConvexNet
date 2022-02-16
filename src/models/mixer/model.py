@@ -51,10 +51,11 @@ class MlpMixer(nn.Module):
 
         assert config.img_size % config.patch_size == 0, "Patch size should divide image size"
         num_patches = (config.img_size // config.patch_size) ** 2
+        print(config.img_size, config.patch_size)
 
         self.to_patch_embedding = nn.Sequential(
             nn.Conv2d(in_channels=config.in_channels, out_channels=config.hidden_size,
-                      kernel_size=(config.patch_size,), stride=(config.patch_size,)),
+                      kernel_size=config.patch_size, stride=config.patch_size),
             Rearrange('b c h w -> b (h w) c')
         )
         self.mixer_blocks = nn.ModuleList(
