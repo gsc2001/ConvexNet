@@ -30,20 +30,20 @@ def main():
         save_top_k=3,
         mode="max"
     )
-    train_dataset = ImageNet(sys.argv[1], split='train', transform=imnet_transforms, shuffle=True)
-    valid_dataset = ImageNet(sys.argv[1], split='validation', transform=create_transform(cfg.img_size))
+    train_dataset = ImageNet(sys.argv[1], split='train', transform=imnet_transforms)
+    valid_dataset = ImageNet(sys.argv[1], split='val', transform=create_transform(cfg.img_size))
     # train_dataset = create_dataset('tfds/imagenet2012', root=sys.argv[1], batch_size=cfg.batch_size,
     #                                is_training=True, split='train', transform=imnet_transforms)
 
     # valid_dataset = create_dataset('tfds/imagenet2012', root=sys.argv[1], batch_size=cfg.batch_size, split='validation',
     #                                download=True, transform=create_transform(224))
-    train_loader = DataLoader(train_dataset, cfg.batch_size, num_workers=10, shuffle=True)
-    valid_loader = DataLoader(valid_dataset, cfg.batch_size, num_workers=10)
+    train_loader = DataLoader(train_dataset, cfg.batch_size, num_workers=2, shuffle=True)
+    valid_loader = DataLoader(valid_dataset, cfg.batch_size, num_workers=2)
 
     model = mixer.MlpMixer(cfg)
     module = mixer.MixerModule(model, cfg.lr, cfg.weight_decay, cfg.lr_warmup_epochs, cfg.num_epochs,
                                cfg.mixup_strength)
-    trainer = pl.Trainer(gradient_clip_val=1, gpus=[0], callbacks=[checkpoint_callback])
+    trainer = pl.Trainer(gradient_clip_val=1, gpus=[0, 1, 2], callbacks=[checkpoint_callback])
     trainer.fit(module, train_loader, valid_loader)
 
     # ioc_mixer.fit(model, dataset, batch_size=BATCH_SIZE, n_epochs=EPOCHS)
