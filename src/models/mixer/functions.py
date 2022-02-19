@@ -98,7 +98,7 @@ def fit(model: MlpMixer, dataset: DatasetWrapper, lr=1e-3, batch_size=64,
 
     loaders = get_loaders(dataset, batch_size)
 
-    loss_func = nn.CrossEntropyLoss()
+    loss_func = nn.CrossEntropyLoss().cuda
 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     best_error = np.inf

@@ -39,9 +39,8 @@ class MixerBlock(nn.Module):
         )
 
     def forward(self, x):
-        x = x + self.drop_path(self.token_mix(x))
-        x = x + self.drop_path(self.channel_mix(x))
-
+        x.add_(self.drop_path(self.token_mix(x)))
+        x.add_(self.drop_path(self.channel_mix(x)))
         return x
 
 
@@ -75,8 +74,7 @@ class MlpMixer(nn.Module):
         for block in self.mixer_blocks:
             x = block(x)
 
-        x = self.layer_norm(x)
-        x = x.mean(dim=1)
+        x = self.layer_norm(x).mean(dim=1)
 
         x = self.final_fc(x)
         return x
