@@ -29,8 +29,8 @@ class MixerModule(pl.LightningModule):
         y_hat = self(mixed_x)
         loss = F.cross_entropy(y_hat, mixed_y)
         self.train_accuracy(y_hat.argmax(1).int(), mixed_y.argmax(1).int())
-        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.log("train_acc", self.train_accuracy, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
+        self.log("train_acc", self.train_accuracy, on_step=True, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -38,8 +38,8 @@ class MixerModule(pl.LightningModule):
         y_hat = self(x)
         loss = F.cross_entropy(y_hat, y)
         self.valid_accuracy(y_hat, y)
-        self.log("val_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.log("val_acc", self.valid_accuracy, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("val_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
+        self.log("val_acc", self.valid_accuracy, on_step=True, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
         return loss
 
     def configure_optimizers(self):

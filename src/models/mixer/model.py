@@ -39,8 +39,9 @@ class MixerBlock(nn.Module):
         )
 
     def forward(self, x):
-        x.add_(self.drop_path(self.token_mix(x)))
-        x.add_(self.drop_path(self.channel_mix(x)))
+        x = x + self.drop_path(self.token_mix(x))
+        x = x + self.drop_path(self.channel_mix(x))
+
         return x
 
 
