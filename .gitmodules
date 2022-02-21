@@ -7,3 +7,6 @@
 [submodule "model_repos/efficient_densenet_pytorch"]
 	path = model_repos/efficient_densenet_pytorch
 	url = https://github.com/gpleiss/efficient_densenet_pytorch.git
+[submodule "pytorch-image-models"]
+	path = pytorch-image-models
+	url = https://github.com/rwightman/pytorch-image-models.git
