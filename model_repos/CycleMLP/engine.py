@@ -61,8 +61,12 @@ def train_one_epoch(model: torch.nn.Module, criterion: DistillationLoss,
         if model_ema is not None:
             model_ema.update(model)
 
+        batch_size = images.shape[0]
+        acc1 = accuracy(outputs, targets)
         metric_logger.update(loss=loss_value)
         metric_logger.update(lr=optimizer.param_groups[0]["lr"])
+        metric_logger.meters['acc1'].update(acc1.item(), n=batch_size)
+
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
     print("Averaged stats:", metric_logger)
