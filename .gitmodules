@@ -1,6 +1,3 @@
-[submodule "model_repos/CycleMLP"]
-	path = model_repos/CycleMLP
-	url = https://github.com/ShoufaChen/CycleMLP.git
 [submodule "model_repos/vision_transformer"]
 	path = model_repos/vision_transformer
 	url = https://github.com/google-research/vision_transformer.git
