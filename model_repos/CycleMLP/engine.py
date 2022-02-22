@@ -61,7 +61,7 @@ def train_one_epoch(model: torch.nn.Module, criterion: DistillationLoss,
         if model_ema is not None:
             model_ema.update(model)
 
-        batch_size = images.shape[0]
+        batch_size = samples.shape[0]
         acc1 = accuracy(outputs, targets)
         metric_logger.update(loss=loss_value)
         metric_logger.update(lr=optimizer.param_groups[0]["lr"])
