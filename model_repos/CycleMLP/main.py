@@ -11,6 +11,7 @@ from contextlib import suppress
 
 from pathlib import Path
 
+import wandb
 from timm.data import Mixup
 from timm.models import create_model
 from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
@@ -30,6 +31,7 @@ try:
     from apex.parallel import DistributedDataParallel as ApexDDP
     from apex.parallel import convert_syncbn_model
     from timm.utils import ApexScaler
+
     has_apex = True
 except ImportError:
     has_apex = False
@@ -44,6 +46,7 @@ except AttributeError:
 try:
     from fvcore.nn import flop_count, parameter_count, FlopCountAnalysis, flop_count_table
     from utils import sfc_flop_jit
+
     has_fvcore = True
 except ImportError:
     has_fvcore = False
@@ -194,6 +197,10 @@ def get_args_parser():
     # custom parameters
     parser.add_argument('--flops', action='store_true', help='whether calculate FLOPs of the model')
     parser.add_argument('--no_amp', action='store_true', help='not using amp')
+
+    # wandb params
+    parser.add_argument('--wandb_dir', help='Directory to use for wandb logging', required=True)
+    parser.add_argument('--project', help='Project Name to use for wandb', default='ConvexNets')
     return parser
 
 
@@ -201,6 +208,7 @@ def main(args):
     utils.init_distributed_mode(args)
 
     print(args)
+    wandb.init(project=args.project, config=args, dir=args.wandb_dir)
 
     if args.distillation_type != 'none' and args.finetune and not args.eval:
         raise NotImplementedError("Finetuning with distillation not yet supported")
@@ -228,8 +236,8 @@ def main(args):
     elif args.native_amp and has_native_amp:
         use_amp = 'native'
     elif args.apex_amp or args.native_amp:
-        print ("Warning: Neither APEX or native Torch AMP is available, using float32. "
-                        "Install NVIDA apex or upgrade to PyTorch 1.6")
+        print("Warning: Neither APEX or native Torch AMP is available, using float32. "
+              "Install NVIDA apex or upgrade to PyTorch 1.6")
 
     # fix the seed for reproducibility
     seed = args.seed + utils.get_rank()
@@ -490,6 +498,8 @@ def main(args):
                      'epoch': epoch,
                      'n_parameters': n_parameters}
 
+        if utils.is_main_process():
+            wandb.log(log_stats)
         if args.output_dir and utils.is_main_process():
             with (output_dir / "log.txt").open("a") as f:
                 f.write(json.dumps(log_stats) + "\n")
