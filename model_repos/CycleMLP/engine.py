@@ -57,8 +57,9 @@ def train_one_epoch(model: torch.nn.Module, criterion: DistillationLoss,
             if max_norm is not None:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
             optimizer.step()
-
+            print('convex', convex)
             if convex:
+                print('hi')
                 allowed_weights = ['patch_embed.proj.weight',
                                    'network.0.0.norm1.weight',
                                    'network.1.0.attn.mlp_c.weight',
