@@ -59,30 +59,30 @@ def train_one_epoch(model: torch.nn.Module, criterion: DistillationLoss,
             if max_norm is not None:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
             optimizer.step()
-            print('convex', convex)
-            if convex:
-                print('hi')
-                allowed_weights = ['patch_embed.proj.weight',
-                                   'network.0.0.norm1.weight',
-                                   'network.1.0.attn.mlp_c.weight',
-                                   'network.0.0.attn.sfc_h.weight',
-                                   'network.0.0.attn.sfc_w.weight',
-                                   'network.0.0.attn.reweight.fc1.weight'
-                                   ]
-                for name, param in model.named_parameters():
-                    if 'weight' in name:
-                        if name not in allowed_weights:
-                            param_data = param.data.cpu().numpy()
-                            param_data[param_data < 0] = np.exp(
-                                param_data[param_data < 0] - 5)
-                            #
-                            param.data.copy_(torch.tensor(param_data))
-                negative = False
-                for name, param in model.named_parameters():
-                    if 'weight' in name:
-                        if name not in allowed_weights:
-                            negative = negative | torch.any(param < 0)
-                print(negative)
+
+        if convex:
+            print('hi')
+            allowed_weights = ['patch_embed.proj.weight',
+                               'network.0.0.norm1.weight',
+                               'network.1.0.attn.mlp_c.weight',
+                               'network.0.0.attn.sfc_h.weight',
+                               'network.0.0.attn.sfc_w.weight',
+                               'network.0.0.attn.reweight.fc1.weight'
+                               ]
+            for name, param in model.named_parameters():
+                if 'weight' in name:
+                    if name not in allowed_weights:
+                        param_data = param.data.cpu().numpy()
+                        param_data[param_data < 0] = np.exp(
+                            param_data[param_data < 0] - 5)
+                        #
+                        param.data.copy_(torch.tensor(param_data))
+            negative = False
+            for name, param in model.named_parameters():
+                if 'weight' in name:
+                    if name not in allowed_weights:
+                        negative = negative | torch.any(param < 0)
+            print(negative)
 
 
         torch.cuda.synchronize()
