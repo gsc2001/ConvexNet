@@ -70,11 +70,11 @@ def train_one_epoch(model: torch.nn.Module, criterion: DistillationLoss,
             for name, param in model.named_parameters():
                 if 'weight' in name:
                     if name not in allowed_weights:
-                        param_data = param.data.cpu().numpy()
-                        param_data[param_data < 0] = np.exp(
-                            param_data[param_data < 0] - 5)
+                        # param_data = param.data.cpu().numpy()
+                        param[param < 0] = torch.exp(
+                            param[param < 0] - 5)
                         #
-                        param.data.copy_(torch.tensor(param_data))
+                        # param.data.copy_(torch.tensor(param_data))
             negative = False
             for name, param in model.named_parameters():
                 if 'weight' in name:
