@@ -14,13 +14,14 @@ from timm.utils import accuracy, ModelEma
 
 from losses import DistillationLoss
 import utils
+import numpy as np
 
 
 def train_one_epoch(model: torch.nn.Module, criterion: DistillationLoss,
                     data_loader: Iterable, optimizer: torch.optim.Optimizer,
                     device: torch.device, epoch: int, loss_scaler, max_norm: float = 0,
                     model_ema: Optional[ModelEma] = None, mixup_fn: Optional[Mixup] = None,
-                    set_training_mode=True, amp_autocast=None):
+                    set_training_mode=True, amp_autocast=None, convex=False):
     model.train(set_training_mode)
     metric_logger = utils.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
@@ -56,6 +57,23 @@ def train_one_epoch(model: torch.nn.Module, criterion: DistillationLoss,
             if max_norm is not None:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
             optimizer.step()
+
+            if convex:
+                allowed_weights = ['patch_embed.proj.weight',
+                                   'network.0.0.norm1.weight',
+                                   'network.1.0.attn.mlp_c.weight',
+                                   'network.0.0.attn.sfc_h.weight',
+                                   'network.0.0.attn.sfc_w.weight',
+                                   'network.0.0.attn.reweight.fc1.weight'
+                                   ]
+                for name, param in model.named_parameters():
+                    if 'weight' in name:
+                        if name not in allowed_weights:
+                            param_data = param.data.cpu().numpy()
+                            param_data[param_data < 0] = np.exp(
+                                param_data[param_data < 0] - 5)
+                            #
+                            param.data.copy_(torch.tensor(param_data))
 
         torch.cuda.synchronize()
         if model_ema is not None:

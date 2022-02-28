@@ -17,6 +17,7 @@ try:
     from mmseg.models.builder import BACKBONES as seg_BACKBONES
     from mmseg.utils import get_root_logger
     from semantic.custom_fun import load_checkpoint
+
     has_mmseg = True
 except ImportError:
     print('Please Install mmsegmentation first for semantic segmentation.')
@@ -25,6 +26,7 @@ except ImportError:
 try:
     from mmdet.models.builder import BACKBONES as det_BACKBONES
     from mmdet.utils import get_root_logger
+
     has_mmdet = True
 except ImportError:
     print('Please Install mmdetection first for object detection and instance segmentation.')
@@ -39,6 +41,7 @@ def _cfg(url='', **kwargs):
         'mean': IMAGENET_DEFAULT_MEAN, 'std': IMAGENET_DEFAULT_STD, 'classifier': 'head',
         **kwargs
     }
+
 
 default_cfgs = {
     'cycle_S': _cfg(crop_pct=0.9),
@@ -71,15 +74,15 @@ class CycleFC(nn.Module):
     """
 
     def __init__(
-        self,
-        in_channels: int,
-        out_channels: int,
-        kernel_size,  # re-defined kernel_size, represent the spatial area of staircase FC
-        stride: int = 1,
-        padding: int = 0,
-        dilation: int = 1,
-        groups: int = 1,
-        bias: bool = True,
+            self,
+            in_channels: int,
+            out_channels: int,
+            kernel_size,  # re-defined kernel_size, represent the spatial area of staircase FC
+            stride: int = 1,
+            padding: int = 0,
+            dilation: int = 1,
+            groups: int = 1,
+            bias: bool = True,
     ):
         super(CycleFC, self).__init__()
 
@@ -124,7 +127,7 @@ class CycleFC(nn.Module):
             out_height, out_width]): offsets to be applied for each position in the
             convolution kernel.
         """
-        offset = torch.empty(1, self.in_channels*2, 1, 1)
+        offset = torch.empty(1, self.in_channels * 2, 1, 1)
         start_idx = (self.kernel_size[0] * self.kernel_size[1]) // 2
         assert self.kernel_size[0] == 1 or self.kernel_size[1] == 1, self.kernel_size
         for i in range(self.in_channels):
@@ -160,14 +163,14 @@ class CycleFC(nn.Module):
 
 
 class CycleMLP(nn.Module):
-    def __init__(self, dim, qkv_bias=False, qk_scale=None, attn_drop=0., proj_drop=0.):
+    def __init__(self, dim, qkv_bias=False, qk_scale=None, attn_drop=0., proj_drop=0., act_layer=nn.GELU):
         super().__init__()
         self.mlp_c = nn.Linear(dim, dim, bias=qkv_bias)
 
         self.sfc_h = CycleFC(dim, dim, (1, 3), 1, 0)
         self.sfc_w = CycleFC(dim, dim, (3, 1), 1, 0)
 
-        self.reweight = Mlp(dim, dim // 4, dim * 3)
+        self.reweight = Mlp(dim, dim // 4, dim * 3, act_layer=act_layer)
 
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_drop)
@@ -195,7 +198,7 @@ class CycleBlock(nn.Module):
                  drop_path=0., act_layer=nn.GELU, norm_layer=nn.LayerNorm, skip_lam=1.0, mlp_fn=CycleMLP):
         super().__init__()
         self.norm1 = norm_layer(dim)
-        self.attn = mlp_fn(dim, qkv_bias=qkv_bias, qk_scale=None, attn_drop=attn_drop)
+        self.attn = mlp_fn(dim, qkv_bias=qkv_bias, qk_scale=None, attn_drop=attn_drop, act_layer=act_layer)
 
         # NOTE: drop path for stochastic depth, we shall see if this is better than dropout here
         self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
@@ -214,6 +217,7 @@ class CycleBlock(nn.Module):
 class PatchEmbedOverlapping(nn.Module):
     """ 2D Image to Patch Embedding with overlapping
     """
+
     def __init__(self, patch_size=16, stride=16, padding=0, in_chans=3, embed_dim=768, norm_layer=None, groups=1):
         super().__init__()
         patch_size = to_2tuple(patch_size)
@@ -222,7 +226,8 @@ class PatchEmbedOverlapping(nn.Module):
         self.patch_size = patch_size
         # remove image_size in model init to support dynamic image size
 
-        self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=patch_size, stride=stride, padding=padding, groups=groups)
+        self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=patch_size, stride=stride, padding=padding,
+                              groups=groups)
         self.norm = norm_layer(embed_dim) if norm_layer else nn.Identity()
 
     def forward(self, x):
@@ -233,6 +238,7 @@ class PatchEmbedOverlapping(nn.Module):
 class Downsample(nn.Module):
     """ Downsample transition stage
     """
+
     def __init__(self, in_embed_dim, out_embed_dim, patch_size):
         super().__init__()
         assert patch_size == 2, patch_size
@@ -246,13 +252,14 @@ class Downsample(nn.Module):
 
 
 def basic_blocks(dim, index, layers, mlp_ratio=3., qkv_bias=False, qk_scale=None, attn_drop=0.,
-                 drop_path_rate=0., skip_lam=1.0, mlp_fn=CycleMLP, **kwargs):
+                 drop_path_rate=0., skip_lam=1.0, mlp_fn=CycleMLP, act_layer=nn.GELU, **kwargs):
     blocks = []
 
     for block_idx in range(layers[index]):
         block_dpr = drop_path_rate * (block_idx + sum(layers[:index])) / (sum(layers) - 1)
         blocks.append(CycleBlock(dim, mlp_ratio=mlp_ratio, qkv_bias=qkv_bias, qk_scale=qk_scale,
-                      attn_drop=attn_drop, drop_path=block_dpr, skip_lam=skip_lam, mlp_fn=mlp_fn))
+                                 attn_drop=attn_drop, drop_path=block_dpr, skip_lam=skip_lam, mlp_fn=mlp_fn,
+                                 act_layer=act_layer))
     blocks = nn.Sequential(*blocks)
 
     return blocks
@@ -260,10 +267,11 @@ def basic_blocks(dim, index, layers, mlp_ratio=3., qkv_bias=False, qk_scale=None
 
 class CycleNet(nn.Module):
     """ CycleMLP Network """
+
     def __init__(self, layers, img_size=224, patch_size=4, in_chans=3, num_classes=1000,
-        embed_dims=None, transitions=None, segment_dim=None, mlp_ratios=None, skip_lam=1.0,
-        qkv_bias=False, qk_scale=None, drop_rate=0., attn_drop_rate=0., drop_path_rate=0.,
-        norm_layer=nn.LayerNorm, mlp_fn=CycleMLP, fork_feat=False):
+                 embed_dims=None, transitions=None, segment_dim=None, mlp_ratios=None, skip_lam=1.0,
+                 qkv_bias=False, qk_scale=None, drop_rate=0., attn_drop_rate=0., drop_path_rate=0.,
+                 norm_layer=nn.LayerNorm, mlp_fn=CycleMLP, fork_feat=False, act_layer=nn.GELU):
 
         super().__init__()
         if not fork_feat:
@@ -276,13 +284,13 @@ class CycleNet(nn.Module):
         for i in range(len(layers)):
             stage = basic_blocks(embed_dims[i], i, layers, mlp_ratio=mlp_ratios[i], qkv_bias=qkv_bias,
                                  qk_scale=qk_scale, attn_drop=attn_drop_rate, drop_path_rate=drop_path_rate,
-                                 norm_layer=norm_layer, skip_lam=skip_lam, mlp_fn=mlp_fn)
+                                 norm_layer=norm_layer, skip_lam=skip_lam, mlp_fn=mlp_fn, act_layer=act_layer)
             network.append(stage)
             if i >= len(layers) - 1:
                 break
-            if transitions[i] or embed_dims[i] != embed_dims[i+1]:
+            if transitions[i] or embed_dims[i] != embed_dims[i + 1]:
                 patch_size = 2 if transitions[i] else 1
-                network.append(Downsample(embed_dims[i], embed_dims[i+1], patch_size))
+                network.append(Downsample(embed_dims[i], embed_dims[i + 1], patch_size))
 
         self.network = nn.ModuleList(network)
 
@@ -437,6 +445,7 @@ if has_mmseg and has_mmdet:
             super(CycleMLP_B1_feat, self).__init__(layers, embed_dims=embed_dims, patch_size=7, transitions=transitions,
                                                    mlp_ratios=mlp_ratios, mlp_fn=CycleMLP, fork_feat=True)
 
+
     @seg_BACKBONES.register_module()
     @det_BACKBONES.register_module()
     class CycleMLP_B2_feat(CycleNet):
@@ -459,6 +468,7 @@ if has_mmseg and has_mmdet:
             embed_dims = [64, 128, 320, 512]
             super(CycleMLP_B3_feat, self).__init__(layers, embed_dims=embed_dims, patch_size=7, transitions=transitions,
                                                    mlp_ratios=mlp_ratios, mlp_fn=CycleMLP, fork_feat=True)
+
 
     @seg_BACKBONES.register_module()
     @det_BACKBONES.register_module()
