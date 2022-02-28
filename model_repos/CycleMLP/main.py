@@ -18,6 +18,7 @@ from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
 from timm.scheduler import create_scheduler
 from timm.optim import create_optimizer
 from timm.utils import NativeScaler, get_state_dict, ModelEma
+from torch import nn
 
 from datasets import build_dataset
 from engine import train_one_epoch, evaluate
@@ -61,6 +62,7 @@ def get_args_parser():
     parser.add_argument('--model', default='deit_base_patch16_224', type=str, metavar='MODEL',
                         help='Name of model to train')
     parser.add_argument('--input-size', default=224, type=int, help='images input size')
+    parser.add_argument('--convex', action='store_true', help='Convex Counterpart')
 
     parser.add_argument('--drop', type=float, default=0.0, metavar='PCT',
                         help='Dropout rate (default: 0.)')
@@ -302,6 +304,7 @@ def main(args):
             label_smoothing=args.smoothing, num_classes=args.nb_classes)
 
     print(f"Creating model: {args.model}")
+    act_layer = nn.ELU if args.convex else nn.GELU
     model = create_model(
         args.model,
         pretrained=False,
@@ -309,6 +312,7 @@ def main(args):
         drop_rate=args.drop,
         drop_path_rate=args.drop_path,
         drop_block_rate=None,
+        act_layer=act_layer
     )
 
     if args.flops:
@@ -475,6 +479,7 @@ def main(args):
             args.clip_grad, model_ema, mixup_fn,
             set_training_mode=args.finetune == '',  # keep in eval mode during finetuning
             amp_autocast=amp_autocast,
+            convex=args.convex
         )
 
         lr_scheduler.step(epoch)
