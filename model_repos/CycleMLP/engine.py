@@ -29,8 +29,7 @@ def train_one_epoch(model: torch.nn.Module, criterion: DistillationLoss,
     print_freq = 10
     print(convex)
 
-    # for samples, targets in metric_logger.log_every(data_loader, print_freq, header):
-    for samples, targets in data_loader:
+    for samples, targets in metric_logger.log_every(data_loader, print_freq, header):
         samples = samples.to(device, non_blocking=True)
         targets = targets.to(device, non_blocking=True)
 
