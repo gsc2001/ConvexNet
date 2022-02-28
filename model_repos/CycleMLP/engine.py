@@ -74,6 +74,13 @@ def train_one_epoch(model: torch.nn.Module, criterion: DistillationLoss,
                                 param_data[param_data < 0] - 5)
                             #
                             param.data.copy_(torch.tensor(param_data))
+                negative = False
+                for name, param in model.named_parameters():
+                    if 'weight' in name:
+                        if name not in allowed_weights:
+                            negative = negative | torch.any(param < 0)
+                print(negative)
+
 
         torch.cuda.synchronize()
         if model_ema is not None:

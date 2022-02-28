@@ -314,6 +314,7 @@ def main(args):
         drop_block_rate=None,
         act_layer=act_layer
     )
+    print(model)
 
     if args.flops:
         if not has_fvcore:
