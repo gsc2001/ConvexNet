@@ -60,7 +60,6 @@ def train_one_epoch(model: torch.nn.Module, criterion: DistillationLoss,
             optimizer.step()
 
         if convex:
-            print('hi')
             allowed_weights = ['patch_embed.proj.weight',
                                'network.0.0.norm1.weight',
                                'network.1.0.attn.mlp_c.weight',
@@ -81,7 +80,6 @@ def train_one_epoch(model: torch.nn.Module, criterion: DistillationLoss,
                 if 'weight' in name:
                     if name not in allowed_weights:
                         negative = negative | torch.any(param < 0)
-            print(negative)
 
 
         torch.cuda.synchronize()
