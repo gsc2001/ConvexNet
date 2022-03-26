@@ -3,6 +3,7 @@ The main train file
     :author: gsc2001
     :brief: File to train on ImageNet
 """
+import torch
 import argparse
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import WandbLogger
@@ -20,11 +21,11 @@ def get_args() -> argparse.Namespace:
 def main():
     args = get_args()
 
-    imagenet = ImagenetDataModule(args.data_dir)
     densenet = DensenetModule(32, (6, 12, 24, 16), 64)
 
     logger = WandbLogger(project="ConvexNets")
-    trainer = pl.Trainer(max_epochs=90, logger=logger)
+    trainer = pl.Trainer(max_epochs=90, logger=logger, gpus=torch.cuda.device_count())
+    imagenet = ImagenetDataModule(args.data_dir)
     trainer.fit(densenet, imagenet)
 
 
