@@ -7,7 +7,7 @@ import torch
 import argparse
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import WandbLogger
-from pl_bolts.datamodules import ImagenetDataModule
+from data_modules.imagenet import ImagenetDataModule
 from models.densenet import DensenetModule
 
 
@@ -25,7 +25,7 @@ def main():
 
     logger = WandbLogger(project="ConvexNets")
     trainer = pl.Trainer(max_epochs=90, logger=logger, gpus=torch.cuda.device_count())
-    imagenet = ImagenetDataModule(args.data_dir)
+    imagenet = ImagenetDataModule(args.data_dir,batch_size=256)
     trainer.fit(densenet, imagenet)
 
 
