@@ -14,6 +14,7 @@ from models.densenet import DensenetModule
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-dir", help="Data dir for imagenet", required=True)
+    parser.add_argument("--batch-size", help="Training batch_size", default=64)
     args = parser.parse_args()
     return args
 
@@ -25,7 +26,7 @@ def main():
 
     logger = WandbLogger(project="ConvexNets")
     trainer = pl.Trainer(max_epochs=90, logger=logger, gpus=torch.cuda.device_count())
-    imagenet = ImagenetDataModule(args.data_dir,batch_size=256)
+    imagenet = ImagenetDataModule(args.data_dir, batch_size=args.batch_size)
     trainer.fit(densenet, imagenet)
 
 

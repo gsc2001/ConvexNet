@@ -11,7 +11,7 @@ IMAGENET_STD = [0.229, 0.224, 0.225]
 
 
 class ImagenetDataModule(LightningDataModule):
-    def __init__(self, data_dir: str, batch_size, image_size: int = 224, num_workers: int = 0):
+    def __init__(self, data_dir: str, batch_size, image_size: int = 224, num_workers: int = 10):
         super(ImagenetDataModule, self).__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
@@ -41,8 +41,8 @@ class ImagenetDataModule(LightningDataModule):
 
     def train_dataloader(self) -> DataLoader:
         return DataLoader(self.imagenet_train, batch_size=self.batch_size, shuffle=True, pin_memory=True,
-                          num_workers=self.num_workers)
+                          num_workers=self.num_workers, persistent_workers=True)
 
     def val_dataloader(self) -> DataLoader:
         return DataLoader(self.imagenet_val, batch_size=self.batch_size, shuffle=False, pin_memory=True,
-                          num_workers=self.num_workers)
+                          num_workers=self.num_workers, persistent_workers=True)
