@@ -6,6 +6,7 @@ from .model import DenseNet
 
 class DensenetModule(pl.LightningModule):
     def __init__(self, growth_rate, block_config, num_init_features, **kwargs):
+        self.save_hyperparameters()
         super(DensenetModule, self).__init__()
 
         self.model = DenseNet(growth_rate, block_config, num_init_features, **kwargs)
@@ -37,6 +38,6 @@ class DensenetModule(pl.LightningModule):
         y_hat = self(x)
         self.valid_acc(y_hat, y)
         loss = self.criterion(y_hat, y)
-        self.log("valid/acc", self.valid_acc, on_epoch=True, prog_bar=True, logger=True)
-        self.log("valid/loss", loss, on_epoch=True, prog_bar=True, logger=True)
+        self.log("val/acc", self.valid_acc, on_epoch=True, prog_bar=True, logger=True)
+        self.log("val/loss", loss, on_epoch=True, prog_bar=True, logger=True)
         return loss
