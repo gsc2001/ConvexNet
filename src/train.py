@@ -6,6 +6,9 @@ The main train file
 import torch
 import argparse
 import pytorch_lightning as pl
+
+import wandb
+
 from pytorch_lightning.loggers import WandbLogger
 from data_modules.imagenet import ImagenetDataModule
 from models.densenet import DensenetModule
@@ -21,6 +24,8 @@ def get_args() -> argparse.Namespace:
 
 def main():
     args = get_args()
+
+    wandb.login()
 
     densenet = DensenetModule(32, (6, 12, 24, 16), 64)
 

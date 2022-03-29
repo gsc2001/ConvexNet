@@ -28,8 +28,8 @@ class DensenetModule(pl.LightningModule):
         self.train_acc(y_hat, y)
         loss = self.criterion(y_hat, y)
 
-        self.log("train_acc", self.train_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log("train_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train/acc", self.train_acc, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train/loss", loss, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -37,6 +37,6 @@ class DensenetModule(pl.LightningModule):
         y_hat = self(x)
         self.valid_acc(y_hat, y)
         loss = self.criterion(y_hat, y)
-        self.log("valid_acc", self.valid_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log("valid_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("valid/acc", self.valid_acc, on_epoch=True, prog_bar=True, logger=True)
+        self.log("valid/loss", loss, on_epoch=True, prog_bar=True, logger=True)
         return loss
