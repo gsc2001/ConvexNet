@@ -14,7 +14,7 @@ from models.densenet import DensenetModule
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-dir", help="Data dir for imagenet", required=True)
-    parser.add_argument("--batch-size", help="Training batch_size", default=64)
+    parser.add_argument("--batch-size", help="Training batch_size", default=64, type=int)
     args = parser.parse_args()
     return args
 
