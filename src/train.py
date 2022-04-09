@@ -23,6 +23,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--data-dir", help="Data dir for imagenet", required=True)
     parser.add_argument("--batch-size", help="Training batch_size", default=64, type=int)
     parser.add_argument("--convex", action='store_true')
+    parser.add_argument("--save_dir", required=True)
     args = parser.parse_args()
     return args
 
@@ -31,9 +32,7 @@ def main():
     args = get_args()
 
     wandb.login()
-    dir_path = '../trained_models/imgnet_models/densenet/'
-    if args.convex:
-        dir_path = os.path.join(dir_path, 'convex')
+    dir_path = args.save_dir
     checkpoint_callback = ModelCheckpoint(
         monitor='val/acc',
         dirpath=dir_path,
