@@ -133,3 +133,4 @@ data/
 runs/
 trained_models/
 *.out
+wandb/

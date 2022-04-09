@@ -20,7 +20,7 @@ class DensenetModule(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = optim.SGD(self.parameters(), lr=0.1, weight_decay=1e-4, momentum=0.9)
-        lr_scheduler = optim.lr_scheduler.StepLR(optimizer, 30, 0.1)
+        lr_scheduler = optim.lr_scheduler.StepLR(optimizer, 10, 0.1)
         return [optimizer], [lr_scheduler]
 
     def training_step(self, batch, batch_idx):

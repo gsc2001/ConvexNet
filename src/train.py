@@ -39,7 +39,7 @@ def main():
     densenet = DensenetModule(32, (6, 12, 24, 16), 64)
 
     logger = WandbLogger(project="ConvexNets")
-    trainer = pl.Trainer(max_epochs=90, logger=logger, gpus=torch.cuda.device_count(), callbacks=[checkpoint_callback])
+    trainer = pl.Trainer(max_epochs=30, logger=logger, gpus=1, callbacks=[checkpoint_callback], resume_from_checkpoint='/home/sarath/gsc2001/ConvexNet/src/imgnet_models/densenet/imgnetMixer-epoch=10-val/acc=0.63.ckpt')
     imagenet = ImagenetDataModule(args.data_dir, batch_size=args.batch_size)
     trainer.fit(densenet, imagenet)
 
