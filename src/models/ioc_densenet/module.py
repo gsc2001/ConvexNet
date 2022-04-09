@@ -3,15 +3,15 @@ import pytorch_lightning as pl
 import numpy as np
 import torchmetrics
 import torch
-from .model import DenseNet
+from .model import IOCDenseNet
 
 
-class DensenetModule(pl.LightningModule):
+class IOCDensenetModule(pl.LightningModule):
     def __init__(self, growth_rate, block_config, num_init_features, **kwargs):
         self.save_hyperparameters()
-        super(DensenetModule, self).__init__()
+        super(IOCDensenetModule, self).__init__()
 
-        self.model = DenseNet(growth_rate, block_config, num_init_features, **kwargs)
+        self.model = IOCDenseNet(growth_rate, block_config, num_init_features, **kwargs)
         self.criterion = nn.CrossEntropyLoss()
 
         self.train_acc = torchmetrics.Accuracy()
