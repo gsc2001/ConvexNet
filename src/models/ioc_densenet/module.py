@@ -7,7 +7,7 @@ from .model import IOCDenseNet
 
 
 class IOCDensenetModule(pl.LightningModule):
-    def __init__(self, growth_rate, block_config, num_init_features, **kwargs):
+    def __init__(self, growth_rate, block_config, num_init_features, lr, **kwargs):
         self.save_hyperparameters()
         super(IOCDensenetModule, self).__init__()
 
@@ -21,7 +21,7 @@ class IOCDensenetModule(pl.LightningModule):
         return self.model(x)
 
     def configure_optimizers(self):
-        optimizer = optim.SGD(self.parameters(), lr=0.1, weight_decay=1e-4, momentum=0.9)
+        optimizer = optim.SGD(self.parameters(), lr=self.hparams.lr, weight_decay=1e-4, momentum=0.9)
         lr_scheduler = optim.lr_scheduler.StepLR(optimizer, 10, 0.1)
         return [optimizer], [lr_scheduler]
 

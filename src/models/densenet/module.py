@@ -5,7 +5,7 @@ from .model import DenseNet
 
 
 class DensenetModule(pl.LightningModule):
-    def __init__(self, growth_rate, block_config, num_init_features, **kwargs):
+    def __init__(self, growth_rate, block_config, num_init_features, lr, **kwargs):
         self.save_hyperparameters()
         super(DensenetModule, self).__init__()
 
@@ -15,11 +15,16 @@ class DensenetModule(pl.LightningModule):
         self.train_acc = torchmetrics.Accuracy()
         self.valid_acc = torchmetrics.Accuracy()
 
+    @staticmethod
+    def add_model_specific_args(parent_parser):
+        parser = parent_parser.add_argument_group('Model')
+        parser.add_argument('--lr', type=float, default=.1)
+
     def forward(self, x):
         return self.model(x)
 
     def configure_optimizers(self):
-        optimizer = optim.SGD(self.parameters(), lr=0.1, weight_decay=1e-4, momentum=0.9)
+        optimizer = optim.SGD(self.parameters(), lr=self.hparams.lr, weight_decay=1e-4, momentum=0.9)
         lr_scheduler = optim.lr_scheduler.StepLR(optimizer, 10, 0.1)
         return [optimizer], [lr_scheduler]
 
