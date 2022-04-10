@@ -19,6 +19,7 @@ class DensenetModule(pl.LightningModule):
     def add_model_specific_args(parent_parser):
         parser = parent_parser.add_argument_group('Model')
         parser.add_argument('--lr', type=float, default=.1)
+        return parser
 
     def forward(self, x):
         return self.model(x)
