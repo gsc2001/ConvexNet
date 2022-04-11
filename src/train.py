@@ -12,7 +12,7 @@ import pytorch_lightning as pl
 import wandb
 
 from pytorch_lightning.loggers import WandbLogger
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from data_modules.imagenet import ImagenetDataModule
 from pl_bolts.datamodules import CIFAR10DataModule
 from models.densenet import DensenetModule
@@ -26,6 +26,7 @@ def add_global_args(parent_parser: argparse.ArgumentParser):
     parser.add_argument("--convex", action='store_true')
     parser.add_argument("--save_dir", required=True)
     parser.add_argument("--dataset", default='imagenet')
+    parser.add_argument("--epochs", type=int, default=30)
     return parent_parser
 
 
@@ -45,18 +46,21 @@ def main():
         save_top_k=3,
         mode="max"
     )
+    lr_monitor = LearningRateMonitor(logging_interval='step')
 
     if args.convex:
-        densenet = IOCDensenetModule(32, (6, 12, 24, 16), 64, lr=args.lr)
+        densenet = IOCDensenetModule(32, (6, 12, 24, 16), 64, lr=args.lr, epochs=args.epochs)
     else:
-        densenet = DensenetModule(32, (6, 12, 24, 16), 64, lr=args.lr)
+        densenet = DensenetModule(32, (6, 12, 24, 16), 64, lr=args.lr, epochs=args.epochs)
 
     logger = WandbLogger(project="ConvexNets")
-    trainer = pl.Trainer(max_epochs=30, logger=logger, gpus=1, callbacks=[checkpoint_callback])
+    trainer = pl.Trainer(max_epochs=args.epochs, logger=logger, gpus=1, callbacks=[checkpoint_callback, lr_monitor])
     if args.dataset == 'imagenet':
         datamodule = ImagenetDataModule(args.data_dir, batch_size=args.batch_size)
     else:
         datamodule = CIFAR10DataModule(args.data_dir, batch_size=args.batch_size)
+    print('Dataset: ', datamodule.__name__)
+    print('lr: ', )
 
     trainer.fit(densenet, datamodule=datamodule)
 

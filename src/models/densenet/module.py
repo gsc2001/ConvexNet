@@ -5,7 +5,7 @@ from .model import DenseNet
 
 
 class DensenetModule(pl.LightningModule):
-    def __init__(self, growth_rate, block_config, num_init_features, lr, **kwargs):
+    def __init__(self, growth_rate, block_config, num_init_features, lr, epochs, **kwargs):
         self.save_hyperparameters()
         super(DensenetModule, self).__init__()
 
@@ -26,7 +26,7 @@ class DensenetModule(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = optim.SGD(self.parameters(), lr=self.hparams.lr, weight_decay=1e-4, momentum=0.9)
-        lr_scheduler = optim.lr_scheduler.StepLR(optimizer, 10, 0.1)
+        lr_scheduler = optim.lr_scheduler.StepLR(optimizer, self.hparams.epochs / 3, 0.1)
         return [optimizer], [lr_scheduler]
 
     def training_step(self, batch, batch_idx):
