@@ -59,9 +59,9 @@ def main():
         datamodule = ImagenetDataModule(args.data_dir, batch_size=args.batch_size)
     else:
         datamodule = CIFAR10DataModule(args.data_dir, batch_size=args.batch_size)
-    print('Dataset: ', datamodule)
-    print('Model: ', densenet)
-    print('lr: ', )
+    print('Dataset: ', datamodule.__class.__name__)
+    print('Model: ', densenet.__class__.__name__)
+    print('lr: ', args.lr)
 
     trainer.fit(densenet, datamodule=datamodule)
 
