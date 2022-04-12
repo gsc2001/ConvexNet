@@ -5,11 +5,12 @@ from .model import DenseNet
 
 
 class DensenetModule(pl.LightningModule):
-    def __init__(self, growth_rate, block_config, num_init_features, lr, epochs, **kwargs):
+    def __init__(self, growth_rate, block_config, num_init_features, lr, epochs, num_classes, drop_rate, **kwargs):
         self.save_hyperparameters()
         super(DensenetModule, self).__init__()
 
-        self.model = DenseNet(growth_rate, block_config, num_init_features, **kwargs)
+        self.model = DenseNet(growth_rate, block_config, num_init_features, num_classes=num_classes,
+                              drop_rate=drop_rate)
         self.criterion = nn.CrossEntropyLoss()
 
         self.train_acc = torchmetrics.Accuracy()
@@ -19,6 +20,8 @@ class DensenetModule(pl.LightningModule):
     def add_model_specific_args(parent_parser):
         parser = parent_parser.add_argument_group('Model')
         parser.add_argument('--lr', type=float, default=.1)
+        parser.add_argument('--num-classes', type=float, default=1000)
+        parser.add_argument('--drop-rate', type=float, default=0)
         return parent_parser
 
     def forward(self, x):
@@ -27,7 +30,8 @@ class DensenetModule(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = optim.SGD(self.parameters(), lr=self.hparams.lr, weight_decay=1e-4, momentum=0.9)
 
-        lr_scheduler = optim.lr_scheduler.StepLR(optimizer, self.hparams.epochs // 3, .1)
+        lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer,
+                                                      [self.hparams.epochs // 2, 3 * self.hparams.epochs // 4], .1)
         return {
             'optimizer': optimizer,
             "lr_scheduler": {

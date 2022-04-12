@@ -51,7 +51,8 @@ def main():
     if args.convex:
         densenet = IOCDensenetModule(32, (6, 12, 24, 16), 64, lr=args.lr, epochs=args.epochs)
     else:
-        densenet = DensenetModule(32, (6, 12, 24, 16), 64, lr=args.lr, epochs=args.epochs)
+        densenet = DensenetModule(32, (6, 12, 24, 16), 64, lr=args.lr, epochs=args.epochs, num_classes=args.num_classes,
+                                  drop_rate=args.drop_rate)
 
     logger = WandbLogger(project="ConvexNets")
     trainer = pl.Trainer(max_epochs=args.epochs, logger=logger, gpus=1, callbacks=[checkpoint_callback, lr_monitor])
