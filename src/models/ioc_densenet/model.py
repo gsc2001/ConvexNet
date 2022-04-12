@@ -21,16 +21,16 @@ class _DenseLayer(nn.Module):
         super().__init__()
         self.norm1: nn.BatchNorm2d
         self.add_module("norm1", nn.BatchNorm2d(num_input_features))
-        self.relu1: nn.ELU
-        self.add_module("relu1", nn.ELU(inplace=True))
+        self.elu1: nn.ELU
+        self.add_module("elu1", nn.ELU(inplace=True))
         self.conv1: nn.Conv2d
         self.add_module(
             "conv1", nn.Conv2d(num_input_features, bn_size * growth_rate, kernel_size=1, stride=1, bias=False)
         )
         self.norm2: nn.BatchNorm2d
         self.add_module("norm2", nn.BatchNorm2d(bn_size * growth_rate))
-        self.relu2: nn.ELU
-        self.add_module("relu2", nn.ELU(inplace=True))
+        self.elu2: nn.ELU
+        self.add_module("elu2", nn.ELU(inplace=True))
         self.conv2: nn.Conv2d
         self.add_module(
             "conv2", nn.Conv2d(bn_size * growth_rate, growth_rate, kernel_size=3, stride=1, padding=1, bias=False)
@@ -40,7 +40,7 @@ class _DenseLayer(nn.Module):
 
     def bn_function(self, inputs: List[Tensor]) -> Tensor:
         concated_features = torch.cat(inputs, 1)
-        bottleneck_output = self.conv1(self.relu1(self.norm1(concated_features)))  # noqa: T484
+        bottleneck_output = self.conv1(self.elu1(self.norm1(concated_features)))  # noqa: T484
         return bottleneck_output
 
     # todo: rewrite when torchscript supports any
@@ -81,7 +81,7 @@ class _DenseLayer(nn.Module):
         else:
             bottleneck_output = self.bn_function(prev_features)
 
-        new_features = self.conv2(self.relu2(self.norm2(bottleneck_output)))
+        new_features = self.conv2(self.elu2(self.norm2(bottleneck_output)))
         if self.drop_rate > 0:
             new_features = F.dropout(new_features, p=self.drop_rate, training=self.training)
         return new_features
@@ -122,7 +122,7 @@ class _Transition(nn.Sequential):
     def __init__(self, num_input_features: int, num_output_features: int) -> None:
         super().__init__()
         self.add_module("norm", nn.BatchNorm2d(num_input_features))
-        self.add_module("relu", nn.ELU(inplace=True))
+        self.add_module("elu", nn.ELU(inplace=True))
         self.add_module("conv", nn.Conv2d(num_input_features, num_output_features, kernel_size=1, stride=1, bias=False))
         self.add_module("pool", nn.AvgPool2d(kernel_size=2, stride=2))
 
@@ -161,7 +161,7 @@ class IOCDenseNet(nn.Module):
                 [
                     ("conv0", nn.Conv2d(3, num_init_features, kernel_size=7, stride=2, padding=3, bias=False)),
                     ("norm0", nn.BatchNorm2d(num_init_features)),
-                    ("relu0", nn.ELU(inplace=True)),
+                    ("elu0", nn.ELU(inplace=True)),
                     ("pool0", nn.MaxPool2d(kernel_size=3, stride=2, padding=1)),
                 ]
             )
@@ -203,7 +203,7 @@ class IOCDenseNet(nn.Module):
 
     def forward(self, x: Tensor) -> Tensor:
         features = self.features(x)
-        out = F.relu(features, inplace=True)
+        out = F.elu(features, inplace=True)
         out = F.adaptive_avg_pool2d(out, (1, 1))
         out = torch.flatten(out, 1)
         out = self.classifier(out)
