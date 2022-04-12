@@ -49,7 +49,8 @@ def main():
     lr_monitor = LearningRateMonitor(logging_interval='step')
 
     if args.convex:
-        densenet = IOCDensenetModule(32, (6, 12, 24, 16), 64, lr=args.lr, epochs=args.epochs)
+        densenet = IOCDensenetModule(32, (6, 12, 24, 16), 64, lr=args.lr, epochs=args.epochs,
+                                     num_classes=args.num_classes, drop_rate=args.drop_rate)
     else:
         densenet = DensenetModule(32, (6, 12, 24, 16), 64, lr=args.lr, epochs=args.epochs, num_classes=args.num_classes,
                                   drop_rate=args.drop_rate)
