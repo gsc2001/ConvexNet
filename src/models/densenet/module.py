@@ -27,12 +27,12 @@ class DensenetModule(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = optim.SGD(self.parameters(), lr=self.hparams.lr, weight_decay=1e-4, momentum=0.9)
 
-        lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
+        lr_scheduler = optim.lr_scheduler.StepLR(optimizer, self.hparams.epochs // 3, .1)
         return {
             'optimizer': optimizer,
             "lr_scheduler": {
                 "scheduler": lr_scheduler,
-                "monitor": "val/loss"
+                # "monitor": "train/loss"
             }
         }
 
