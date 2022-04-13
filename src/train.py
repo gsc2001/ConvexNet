@@ -10,11 +10,12 @@ import torch
 import pytorch_lightning as pl
 
 import wandb
-
+from torchvision import transforms
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from data_modules.imagenet import ImagenetDataModule
 from pl_bolts.datamodules import CIFAR10DataModule
+from pl_bolts.transforms.dataset_normalizations import cifar10_normalization
 from models.densenet import DensenetModule
 from models.ioc_densenet import IOCDensenetModule
 
@@ -61,6 +62,20 @@ def main():
         datamodule = ImagenetDataModule(args.data_dir, batch_size=args.batch_size)
     else:
         datamodule = CIFAR10DataModule(args.data_dir, batch_size=args.batch_size)
+        datamodule.train_transforms = transforms.Compose([
+            transforms.RandomCrop(32, padding=4),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            cifar10_normalization()
+        ])
+        datamodule.val_transforms = transforms.Compose([
+            transforms.ToTensor(),
+            cifar10_normalization()
+        ])
+        datamodule.test_transforms = transforms.Compose([
+            transforms.ToTensor(),
+            cifar10_normalization()
+        ])
     print('Dataset: ', datamodule.__class__.__name__)
     print('Model: ', densenet.__class__.__name__)
     print('lr: ', args.lr)

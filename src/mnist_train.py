@@ -13,7 +13,7 @@ import wandb
 
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
-from pl_bolts.datamodules import MNISTDataModule
+from pl_bolts.datamodules import FashionMNISTDataModule
 from models.mnist_model import NNModule
 
 
