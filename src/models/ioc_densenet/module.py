@@ -24,7 +24,8 @@ class IOCDensenetModule(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = optim.SGD(self.parameters(), lr=self.hparams.lr, weight_decay=1e-4, momentum=0.9)
         lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer,
-                                                      [self.hparams.epochs // 2, 3 * self.hparams.epochs // 4], .1)
+                                                      [int(.25 * self.hparams.epochs), int(.5 * self.hparams.epochs),
+                                                       int(.75 * self.hparams.epochs)], .1)
         return {
             'optimizer': optimizer,
             "lr_scheduler": {
