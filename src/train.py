@@ -61,21 +61,23 @@ def main():
     if args.dataset == 'imagenet':
         datamodule = ImagenetDataModule(args.data_dir, batch_size=args.batch_size)
     else:
-        datamodule = CIFAR10DataModule(args.data_dir, batch_size=args.batch_size)
-        datamodule.train_transforms = transforms.Compose([
+        train_transforms = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             cifar10_normalization()
         ])
-        datamodule.val_transforms = transforms.Compose([
+        val_transforms = transforms.Compose([
             transforms.ToTensor(),
             cifar10_normalization()
         ])
-        datamodule.test_transforms = transforms.Compose([
+        test_transforms = transforms.Compose([
             transforms.ToTensor(),
             cifar10_normalization()
         ])
+        datamodule = CIFAR10DataModule(args.data_dir, batch_size=args.batch_size, train_transforms=train_transforms,
+                                       val_transforms=val_transforms, test_transforms=test_transforms,
+                                       num_workers=os.cpu_count() // 3)
     print('Dataset: ', datamodule.__class__.__name__)
     print('Model: ', densenet.__class__.__name__)
     print('lr: ', args.lr)
